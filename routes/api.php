@@ -16,4 +16,9 @@ use Illuminate\Http\Request;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
-Route::post('V1/bet', 'Api\V1\BetApiController@store');
+
+Route::prefix('V1')->group(function () {
+    Route::group(['middleware' => ['sessions']], function () {
+        Route::post('bet', 'Api\V1\BetApiController@store');
+    });
+});

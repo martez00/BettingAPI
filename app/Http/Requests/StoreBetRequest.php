@@ -149,10 +149,10 @@ class StoreBetRequest extends FormRequest
     public function rules()
     {
         return [
-            'player_id' => 'required',
+            'user_id' => 'required',
             'stake_amount' => 'required|amount_format|min_amount:0.3|max_amount:10000',
             'selections' => 'min_selections:1|max_selections:20',
-            'selections.*.id' => 'required|distinct',
+            'selections.*.id' => 'required|distinct|exists:selections,id',
             'selections.*.odds' => 'required|odds_format|min_odds:1|max_odds:10000',
             'max_win' => 'max_win_amount:10000'
         ];
@@ -161,7 +161,7 @@ class StoreBetRequest extends FormRequest
     public function messages()
     {
         return [
-            'player_id.required' => ["code" => 0, "message" => "Player ID field is required!"],
+            'user_id.required' => ["code" => 0, "message" => "Player ID field is required!"],
             'stake_amount.required' => ["code" => 0, "message" => "Stake amount field is required!"],
             'stake_amount.amount_format' => ["code" => 0, "message" => "Stake amount format is invalid!"],
             'stake_amount.min_amount' => ["code" => 2, "message" => "Minimum stake amount is :min_amount"],
@@ -171,6 +171,7 @@ class StoreBetRequest extends FormRequest
             'selections.max_selections' => ["code" => 5, "message" => "Maximum number of selections is :max_selections"],
             'selections.*.id.required' => ["code" => 0, "message" => "Selection ID is required!"],
             'selections.*.id.distinct' => ["code" => 8, "message" => "Duplicate selection found"],
+            'selections.*.id.exists' => ["code" => 0, "message" => "Selection does not exist!"],
             'selections.*.odds.required' => ["code" => 0, "message" => "Selection :attribute odds is required!"],
             'selections.*.odds.odds_format' => ["code" => 0, "message" => "Selection :attribute odd format is invalid!"],
             'selections.*.min_odds' => ["code" => 6, "message" => "Minimum odds are :min_odds"],
@@ -246,7 +247,7 @@ class StoreBetRequest extends FormRequest
         }
         $mainErrors = json_decode(json_encode($mainErrors, JSON_FORCE_OBJECT), true);
         throw new HttpResponseException(response()->json([
-            'player_id' => $this->input('player_id'),
+            'user_id' => $this->input('user_id'),
             'stake_amount' => $this->input('stake_amount'),
             'errors' => $mainErrors,
             'selections' => $selectionsArray

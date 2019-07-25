@@ -11,6 +11,9 @@ class Bet extends Model
     public $timestamps = false;
 
     public function user(){
-        return $this->belongsTo('App\User');
+        return $this->hasOne('App\User');
+    }
+    public function betSelections(){
+        return $this->hasMany('App\BetSelections');
     }
 }

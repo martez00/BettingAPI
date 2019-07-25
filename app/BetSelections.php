@@ -11,10 +11,10 @@ class BetSelections extends Model
     public $timestamps = false;
 
     public function bet(){
-        return $this->belongsTo('App\Bet');
+        return $this->hasOne('App\Bet');
     }
 
     public function selection(){
-        return $this->belongsTo('App\Selection');
+        return $this->hasOne('App\Selection');
     }
 }
