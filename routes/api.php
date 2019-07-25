@@ -16,4 +16,4 @@ use Illuminate\Http\Request;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
-Route::post('bet', 'Api\V1\BetApiController@store');
+Route::post('V1/bet', 'Api\V1\BetApiController@store');

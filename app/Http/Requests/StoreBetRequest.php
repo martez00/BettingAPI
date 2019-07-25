@@ -2,10 +2,135 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Factory as ValidationFactory;
 
 class StoreBetRequest extends FormRequest
 {
+    public function __construct(ValidationFactory $validationFactory)
+    {
+        $validationFactory->extend(
+            'max_win_amount',
+            function ($attribute, $value, $parameters) {
+                if ($value <= $parameters[0]) return true;
+            },
+            'Maximum win amount is :max_win_amount'
+        );
+
+        $validationFactory->replacer('max_win_amount', function ($message, $attribute, $rule, $parameters) {
+            $maxWinAmount = $parameters[0];
+
+            return str_replace(':max_win_amount', $maxWinAmount, $message);
+        });
+
+        $validationFactory->extend(
+            'min_selections',
+            function ($attribute, $value, $parameters) {
+                if (sizeof($value) >= $parameters[0]) return true;
+            },
+            "There must be at least :min_selections selections!"
+        );
+
+
+        $validationFactory->extend(
+            'max_selections',
+            function ($attribute, $value, $parameters) {
+                if (sizeof($value) <= $parameters[0]) return true;
+            },
+            'There must be less than :max_selections selections!'
+        );
+
+        $validationFactory->replacer('min_selections', function ($message, $attribute, $rule, $parameters) {
+            $minSelections = $parameters[0];
+
+            return str_replace(':min_selections', $minSelections, $message);
+        });
+
+        $validationFactory->replacer('max_selections', function ($message, $attribute, $rule, $parameters) {
+            $maxSelections = $parameters[0];
+
+            return str_replace(':max_selections', $maxSelections, $message);
+        });
+
+
+        $validationFactory->extend(
+            'odds_format',
+            function ($attribute, $value, $parameters) {
+                return preg_match('/^\d{0,8}(\.\d{1,3})?$/', $value);
+            },
+            'Odds format is incorrect!'
+        );
+
+        $validationFactory->extend(
+            'min_odds',
+            function ($attribute, $value, $parameters) {
+                if ($value >= $parameters[0]) return true;
+            },
+            "Odds must be at least :min_odds!"
+        );
+
+
+        $validationFactory->extend(
+            'max_odds',
+            function ($attribute, $value, $parameters) {
+                if ($value <= $parameters[0]) return true;
+            },
+            'Odds must be less than :max_odds!'
+        );
+
+        $validationFactory->replacer('min_odds', function ($message, $attribute, $rule, $parameters) {
+            $minOdds = $parameters[0];
+
+            return str_replace(':min_odds', $minOdds, $message);
+        });
+
+        $validationFactory->replacer('max_odds', function ($message, $attribute, $rule, $parameters) {
+            $maxOdds = $parameters[0];
+
+            return str_replace(':max_odds', $maxOdds, $message);
+        });
+
+        $validationFactory->extend(
+            'amount_format',
+            function ($attribute, $value, $parameters) {
+                return preg_match('/^\d{0,8}(\.\d{1,2})?$/', $value);
+            },
+            'Stake amount format is incorrect!'
+        );
+
+        $validationFactory->extend(
+            'min_amount',
+            function ($attribute, $value, $parameters) {
+                if ($value >= $parameters[0]) return true;
+            },
+            "Stake amount must be at least :min_amount!"
+        );
+
+
+        $validationFactory->extend(
+            'max_amount',
+            function ($attribute, $value, $parameters) {
+                if ($value <= $parameters[0]) return true;
+            },
+            'Stake amount must be less than :max_amount!'
+        );
+
+        $validationFactory->replacer('min_amount', function ($message, $attribute, $rule, $parameters) {
+            $minAmount = $parameters[0];
+
+            return str_replace(':min_amount', $minAmount, $message);
+        });
+
+        $validationFactory->replacer('max_amount', function ($message, $attribute, $rule, $parameters) {
+            $maxAmount = $parameters[0];
+
+            return str_replace(':max_amount', $maxAmount, $message);
+        });
+
+    }
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -13,7 +138,7 @@ class StoreBetRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -24,7 +149,107 @@ class StoreBetRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'player_id' => 'required',
+            'stake_amount' => 'required|amount_format|min_amount:0.3|max_amount:10000',
+            'selections' => 'min_selections:1|max_selections:20',
+            'selections.*.id' => 'required|distinct',
+            'selections.*.odds' => 'required|odds_format|min_odds:1|max_odds:10000',
+            'max_win' => 'max_win_amount:10000'
         ];
+    }
+
+    public function messages()
+    {
+        return [
+            'player_id.required' => ["code" => 0, "message" => "Player ID field is required!"],
+            'stake_amount.required' => ["code" => 0, "message" => "Stake amount field is required!"],
+            'stake_amount.amount_format' => ["code" => 0, "message" => "Stake amount format is invalid!"],
+            'stake_amount.min_amount' => ["code" => 2, "message" => "Minimum stake amount is :min_amount"],
+            'stake_amount.max_amount' => ["code" => 3, "message" => "Maximum stake amount is :max_amount"],
+            'selections.required' => ["code" => 0, "message" => "Selections is required!"],
+            'selections.min_selections' => ["code" => 4, "message" => "Minimum number of selections is :min_selections!"],
+            'selections.max_selections' => ["code" => 5, "message" => "Maximum number of selections is :max_selections"],
+            'selections.*.id.required' => ["code" => 0, "message" => "Selection ID is required!"],
+            'selections.*.id.distinct' => ["code" => 8, "message" => "Duplicate selection found"],
+            'selections.*.odds.required' => ["code" => 0, "message" => "Selection :attribute odds is required!"],
+            'selections.*.odds.odds_format' => ["code" => 0, "message" => "Selection :attribute odd format is invalid!"],
+            'selections.*.min_odds' => ["code" => 6, "message" => "Minimum odds are :min_odds"],
+            'selections.*.max_odds' => ["code" => 7, "message" => "Maximum :attribute odds are :max_odds"],
+            'max_win.max_win_amount' => ["code" => 9, "message" => "Maximum win amount is :max_win_amount"],
+        ];
+    }
+
+    /**
+     * Extend the default getValidatorInstance method
+     * so fields can be modified or added before validation
+     *
+     * @return \Illuminate\Contracts\Validation\Validator
+     */
+    protected function getValidatorInstance()
+    {
+
+        if ($this->input('selections')) {
+            $oddsSum = 1;
+            foreach ($this->input('selections') as $selection) {
+                $oddsSum = $oddsSum * $selection['odds'];
+            }
+        } else $oddsSum = 0;
+
+        $this->merge([
+            'max_win' => $this->input('stake_amount') * $oddsSum
+        ]);
+
+        return parent::getValidatorInstance();
+
+    }
+
+    /**
+     * Handle a failed validation attempt.
+     *
+     * @param  \Illuminate\Contracts\Validation\Validator $validator
+     * @return void
+     *
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    protected function failedValidation(Validator $validator)
+    {
+        $mainErrors = array();
+        $selectionsErrors = array();
+        $selectionsArray = array();
+        foreach ($validator->errors()->getMessages() as $key => $value) {
+            if (preg_match("/selections./", $key)) {
+                $isSelection = true;
+                $selectionKey = explode('.', $key);
+            } else $isSelection = false;
+            $arr = json_decode(json_encode($value), true);
+            foreach ($arr as $keyB => $valueB) {
+                if ($isSelection == true) {
+                    if (intval($selectionKey[1]) || intval($selectionKey[1]) == 0)
+                        $selectionsErrors[$selectionKey[1]][] = $valueB;
+                    else $mainErrors[] = $valueB;
+                } else $mainErrors[] = $valueB;
+            }
+        }
+        $selections = $this->input('selections');
+        if ($selections) {
+            $i = 0;
+            foreach ($selections as $selection) {
+                if (array_key_exists($i, $selectionsErrors)) $selectionErrorsReturn = $selectionsErrors[$i];
+                else $selectionErrorsReturn = [];
+                $selectionsArray[] = [
+                    'id' => $selection['id'],
+                    'odds' => $selection['odds'],
+                    'errors' => $selectionErrorsReturn
+                ];
+                $i++;
+            }
+        }
+        $mainErrors = json_decode(json_encode($mainErrors, JSON_FORCE_OBJECT), true);
+        throw new HttpResponseException(response()->json([
+            'player_id' => $this->input('player_id'),
+            'stake_amount' => $this->input('stake_amount'),
+            'errors' => $mainErrors,
+            'selections' => $selectionsArray
+        ], 400));
     }
 }

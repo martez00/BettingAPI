@@ -8,6 +8,7 @@ class BetSelections extends Model
 {
     protected $table = 'bet_selections';
     public $primaryKey = 'id';
+    public $timestamps = false;
 
     public function bet(){
         return $this->belongsTo('App\Bet');

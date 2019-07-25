@@ -8,6 +8,7 @@ class Selection extends Model
 {
     protected $table = 'selections';
     public $primaryKey = 'id';
+    public $timestamps = false;
 
     public function selectionBets()
     {
