@@ -151,8 +151,8 @@ class StoreBetRequest extends FormRequest
         return [
             'user_id' => 'required',
             'stake_amount' => 'required|amount_format|min_amount:0.3|max_amount:10000',
-            'selections' => 'min_selections:1|max_selections:20',
-            'selections.*.id' => 'required|distinct|exists:selections,id',
+            'selections' => 'required|min_selections:1|max_selections:20',
+            'selections.*.id' => 'required|exists:selections,id|distinct',
             'selections.*.odds' => 'required|odds_format|min_odds:1|max_odds:10000',
             'max_win' => 'max_win_amount:10000'
         ];
@@ -161,21 +161,21 @@ class StoreBetRequest extends FormRequest
     public function messages()
     {
         return [
-            'user_id.required' => ["code" => 0, "message" => "Player ID field is required!"],
+            'user_id.required' => ["code" => 0, "message" => "User ID field is required!"],
             'stake_amount.required' => ["code" => 0, "message" => "Stake amount field is required!"],
             'stake_amount.amount_format' => ["code" => 0, "message" => "Stake amount format is invalid!"],
             'stake_amount.min_amount' => ["code" => 2, "message" => "Minimum stake amount is :min_amount"],
             'stake_amount.max_amount' => ["code" => 3, "message" => "Maximum stake amount is :max_amount"],
-            'selections.required' => ["code" => 0, "message" => "Selections is required!"],
+            'selections.required' => ["code" => 4, "message" => "Minimum number of selections is 1!"],
             'selections.min_selections' => ["code" => 4, "message" => "Minimum number of selections is :min_selections!"],
             'selections.max_selections' => ["code" => 5, "message" => "Maximum number of selections is :max_selections"],
             'selections.*.id.required' => ["code" => 0, "message" => "Selection ID is required!"],
-            'selections.*.id.distinct' => ["code" => 8, "message" => "Duplicate selection found"],
             'selections.*.id.exists' => ["code" => 0, "message" => "Selection does not exist!"],
+            'selections.*.id.distinct' => ["code" => 8, "message" => "Duplicate selection found"],
             'selections.*.odds.required' => ["code" => 0, "message" => "Selection :attribute odds is required!"],
             'selections.*.odds.odds_format' => ["code" => 0, "message" => "Selection :attribute odd format is invalid!"],
             'selections.*.min_odds' => ["code" => 6, "message" => "Minimum odds are :min_odds"],
-            'selections.*.max_odds' => ["code" => 7, "message" => "Maximum :attribute odds are :max_odds"],
+            'selections.*.max_odds' => ["code" => 7, "message" => "Maximum odds are :max_odds"],
             'max_win.max_win_amount' => ["code" => 9, "message" => "Maximum win amount is :max_win_amount"],
         ];
     }

@@ -84,8 +84,7 @@ class BetApiController extends Controller
         session()->forget(['bet_requested']);
         session()->save();
 
-        return response()->json([$bet, $user]);
-        //return response()->json([ 'response'=>'success', 'data'=>$validatedBetData->data]);
+        return response()->json(null, 201);
     }
 
     public function formatErrorResponse($validatedBetData, $errorCode){
