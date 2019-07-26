@@ -15,7 +15,9 @@ class StoreBetRequest extends FormRequest
         $validationFactory->extend(
             'more_than_stake_amount',
             function ($attribute, $value, $parameters) {
-                if ($value > $this->stake_amount) return true;
+                if ($value > $this->stake_amount) {
+                    return true;
+                }
             },
             'Insufficient balance'
         );
@@ -23,7 +25,9 @@ class StoreBetRequest extends FormRequest
         $validationFactory->extend(
             'max_win_amount',
             function ($attribute, $value, $parameters) {
-                if ($value <= $parameters[0]) return true;
+                if ($value <= $parameters[0]) {
+                    return true;
+                }
             },
             'Maximum win amount is :max_win_amount'
         );
@@ -37,7 +41,9 @@ class StoreBetRequest extends FormRequest
         $validationFactory->extend(
             'min_selections',
             function ($attribute, $value, $parameters) {
-                if (sizeof($value) >= $parameters[0]) return true;
+                if (sizeof($value) >= $parameters[0]) {
+                    return true;
+                }
             },
             "There must be at least :min_selections selections!"
         );
@@ -46,7 +52,9 @@ class StoreBetRequest extends FormRequest
         $validationFactory->extend(
             'max_selections',
             function ($attribute, $value, $parameters) {
-                if (sizeof($value) <= $parameters[0]) return true;
+                if (sizeof($value) <= $parameters[0]) {
+                    return true;
+                }
             },
             'There must be less than :max_selections selections!'
         );
@@ -75,7 +83,9 @@ class StoreBetRequest extends FormRequest
         $validationFactory->extend(
             'min_odds',
             function ($attribute, $value, $parameters) {
-                if ($value >= $parameters[0]) return true;
+                if ($value >= $parameters[0]) {
+                    return true;
+                }
             },
             "Odds must be at least :min_odds!"
         );
@@ -84,7 +94,9 @@ class StoreBetRequest extends FormRequest
         $validationFactory->extend(
             'max_odds',
             function ($attribute, $value, $parameters) {
-                if ($value <= $parameters[0]) return true;
+                if ($value <= $parameters[0]) {
+                    return true;
+                }
             },
             'Odds must be less than :max_odds!'
         );
@@ -112,7 +124,9 @@ class StoreBetRequest extends FormRequest
         $validationFactory->extend(
             'min_amount',
             function ($attribute, $value, $parameters) {
-                if ($value >= $parameters[0]) return true;
+                if ($value >= $parameters[0]) {
+                    return true;
+                }
             },
             "Stake amount must be at least :min_amount!"
         );
@@ -121,7 +135,9 @@ class StoreBetRequest extends FormRequest
         $validationFactory->extend(
             'max_amount',
             function ($attribute, $value, $parameters) {
-                if ($value <= $parameters[0]) return true;
+                if ($value <= $parameters[0]) {
+                    return true;
+                }
             },
             'Stake amount must be less than :max_amount!'
         );
@@ -172,15 +188,24 @@ class StoreBetRequest extends FormRequest
     public function messages()
     {
         return [
-            'another_bet_request_initialized.in' => ["code" => 10, "message" => "Your previous action is not finished yet"],
+            'another_bet_request_initialized.in' => [
+                "code" => 10,
+                "message" => "Your previous action is not finished yet"
+            ],
             'user_id.required' => ["code" => 0, "message" => "User ID field is required"],
             'stake_amount.required' => ["code" => 0, "message" => "Stake amount field is required"],
             'stake_amount.amount_format' => ["code" => 0, "message" => "Stake amount format is invalid!"],
             'stake_amount.min_amount' => ["code" => 2, "message" => "Minimum stake amount is :min_amount"],
             'stake_amount.max_amount' => ["code" => 3, "message" => "Maximum stake amount is :max_amount"],
             'selections.required' => ["code" => 4, "message" => "Minimum number of selections is 1"],
-            'selections.min_selections' => ["code" => 4, "message" => "Minimum number of selections is :min_selections"],
-            'selections.max_selections' => ["code" => 5, "message" => "Maximum number of selections is :max_selections"],
+            'selections.min_selections' => [
+                "code" => 4,
+                "message" => "Minimum number of selections is :min_selections"
+            ],
+            'selections.max_selections' => [
+                "code" => 5,
+                "message" => "Maximum number of selections is :max_selections"
+            ],
             'selections.*.id.required' => ["code" => 0, "message" => "Selection ID is required"],
             'selections.*.id.exists' => ["code" => 0, "message" => "Selection does not exist"],
             'selections.*.id.distinct' => ["code" => 8, "message" => "Duplicate selection found"],
@@ -201,14 +226,13 @@ class StoreBetRequest extends FormRequest
      */
     protected function getValidatorInstance()
     {
-        if (!session()->exists('bet_requested')) {
+        if ( ! session()->exists('bet_requested')) {
             session()->put('bet_requested', '1');
             session()->save();
             $this->merge([
                 'another_bet_request_initialized' => 0
             ]);
-        }
-        else {
+        } else {
             $this->merge([
                 'another_bet_request_initialized' => 1
             ]);
@@ -217,7 +241,9 @@ class StoreBetRequest extends FormRequest
             $user = User::find($this->input('user_id'));
             if ($user) {
                 $userBalance = $user->balance;
-            } else $userBalance = 1000; //because docummentation says that default balance is 1000
+            } else {
+                $userBalance = 1000;
+            } //because docummentation says that default balance is 1000
             $this->merge([
                 'user_balance' => $userBalance
             ]);
@@ -229,7 +255,9 @@ class StoreBetRequest extends FormRequest
                 $oddsSum = $oddsSum * $selection['odds'];
             }
             $maxWin = $this->input('stake_amount') * $oddsSum;
-        } else $maxWin = 0;
+        } else {
+            $maxWin = 0;
+        }
 
         $this->merge([
             'max_win' => $maxWin,
@@ -256,22 +284,31 @@ class StoreBetRequest extends FormRequest
             if (preg_match("/selections./", $key)) {
                 $isSelection = true;
                 $selectionKey = explode('.', $key);
-            } else $isSelection = false;
+            } else {
+                $isSelection = false;
+            }
             $arr = json_decode(json_encode($value), true);
             foreach ($arr as $keyB => $valueB) {
                 if ($isSelection == true) {
-                    if (intval($selectionKey[1]) || intval($selectionKey[1]) == 0)
+                    if (intval($selectionKey[1]) || intval($selectionKey[1]) == 0) {
                         $selectionsErrors[$selectionKey[1]][] = $valueB;
-                    else $mainErrors[] = $valueB;
-                } else $mainErrors[] = $valueB;
+                    } else {
+                        $mainErrors[] = $valueB;
+                    }
+                } else {
+                    $mainErrors[] = $valueB;
+                }
             }
         }
         $selections = $this->input('selections');
         if ($selections) {
             $i = 0;
             foreach ($selections as $selection) {
-                if (array_key_exists($i, $selectionsErrors)) $selectionErrorsReturn = $selectionsErrors[$i];
-                else $selectionErrorsReturn = [];
+                if (array_key_exists($i, $selectionsErrors)) {
+                    $selectionErrorsReturn = $selectionsErrors[$i];
+                } else {
+                    $selectionErrorsReturn = [];
+                }
                 $selectionsArray[] = [
                     'id' => $selection['id'],
                     'odds' => $selection['odds'],

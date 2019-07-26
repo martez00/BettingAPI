@@ -6,9 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class BalanceTransaction extends Model
 {
-    protected $table = 'balance_transactions';
     public $primaryKey = 'id';
     public $timestamps = false;
+    protected $table = 'balance_transactions';
 
     public function user()
     {

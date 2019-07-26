@@ -35,7 +35,7 @@ class BetApiController extends Controller
         sleep(1);
 
         $user = User::find($validatedBetData['user_id']);
-        if (!$user) {
+        if ( ! $user) {
             $user = factory(User::class)->create([
                 'id' => $validatedBetData['user_id']
             ]);

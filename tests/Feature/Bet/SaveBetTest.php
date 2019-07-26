@@ -424,7 +424,8 @@ class SaveBetTest extends TestCase
             ]);
         $response->assertStatus(201);
 
-        $createdBet = Bet::where('user_id', $this->user->id)->where('stake_amount', 5)->orderBy('created_at', 'desc')->first();
+        $createdBet = Bet::where('user_id', $this->user->id)->where('stake_amount', 5)->orderBy('created_at',
+            'desc')->first();
         $this->assertNotNull($createdBet);
     }
 
@@ -450,7 +451,8 @@ class SaveBetTest extends TestCase
             ]);
         $response->assertStatus(201);
 
-        $createdBet = Bet::where('user_id', $this->user->id)->where('stake_amount', 5)->orderBy('created_at', 'desc')->first();
+        $createdBet = Bet::where('user_id', $this->user->id)->where('stake_amount', 5)->orderBy('created_at',
+            'desc')->first();
         $this->assertNotNull($createdBet);
 
         $betSelections = BetSelections::where('bet_id', $createdBet->id)->get();

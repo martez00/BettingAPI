@@ -6,9 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Selection extends Model
 {
-    protected $table = 'selections';
     public $primaryKey = 'id';
     public $timestamps = false;
+    protected $table = 'selections';
 
     public function selectionBets()
     {
