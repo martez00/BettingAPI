@@ -20,7 +20,7 @@ class BetApiController extends Controller
     public function index()
     {
         $bets = Bet::all();
-        return response()->json(["data" => $bets], 201);
+        return response()->json(["data" => $bets], 200);
     }
 
     /**
@@ -82,7 +82,7 @@ class BetApiController extends Controller
     public function show($id)
     {
         $bet = Bet::findOrFail($id);
-        return response()->json(["data" => $bet], 201);
+        return response()->json(["data" => $bet], 200);
     }
 
     /**
