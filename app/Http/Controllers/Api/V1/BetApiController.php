@@ -32,12 +32,7 @@ class BetApiController extends Controller
     public function store(StoreBetRequest $request)
     {
         if (session()->exists('bet_requested')) {
-            return response()->json([
-                'errors' => [
-                    'code' => '10',
-                    'message' => 'Your previous action is not finished yet'
-                ],
-            ], 400);
+            return $this->formatErrorResponse(null, 10);
         }
         session()->put('bet_requested', '1');
         session()->save();
@@ -87,9 +82,11 @@ class BetApiController extends Controller
         return response()->json(null, 201);
     }
 
-    public function formatErrorResponse($validatedBetData, $errorCode)
+    public function formatErrorResponse($validatedBetData = null, $errorCode)
     {
         switch ($errorCode) {
+            case '10':
+                $errorMessage = "Your previous action is not finished yet";
             case '11':
                 $errorMessage = "Insufficient balance";
         }
@@ -99,12 +96,19 @@ class BetApiController extends Controller
                 'message' => $errorMessage
             ]
         ];
-        return response()->json([
-            'user_id' => $validatedBetData['user_id'],
-            'stake_amount' => $validatedBetData['stake_amount'],
-            'errors' => $error,
-            'selections' => $validatedBetData['selections']
-        ], 400);
+        if($validatedBetData) {
+            return response()->json([
+                'user_id' => $validatedBetData['user_id'],
+                'stake_amount' => $validatedBetData['stake_amount'],
+                'errors' => $error,
+                'selections' => $validatedBetData['selections']
+            ], 400);
+        }
+        else {
+            return response()->json([
+                'errors' => $error,
+            ], 400);
+        }
     }
 
     /**
