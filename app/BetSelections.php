@@ -10,11 +10,13 @@ class BetSelections extends Model
     public $primaryKey = 'id';
     public $timestamps = false;
 
-    public function bet(){
+    public function bet()
+    {
         return $this->hasOne('App\Bet');
     }
 
-    public function selection(){
+    public function selection()
+    {
         return $this->hasOne('App\Selection');
     }
 }

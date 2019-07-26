@@ -10,10 +10,12 @@ class Bet extends Model
     public $primaryKey = 'id';
     public $timestamps = false;
 
-    public function user(){
+    public function user()
+    {
         return $this->hasOne('App\User');
     }
-    public function betSelections(){
+    public function betSelections()
+    {
         return $this->hasMany('App\BetSelections');
     }
 }
