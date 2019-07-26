@@ -9,11 +9,11 @@
     <tbody>
         <tr>
             <td nowrap>Balance and session validation in StoreRequest</td>
-            <td>In progress</td>
+            <td><b>Finished (2019-07-26)</b></td>
         </tr>
         <tr>
             <td nowrap>Bets only for authenticated users</td>
-            <td>Scheduled</td>
+            <td>In progress</td>
         </tr>
         <tr>
             <td nowrap>Matches model</td>
