@@ -19,7 +19,8 @@ class BetApiController extends Controller
      */
     public function index()
     {
-        //
+        $bets = Bet::all();
+        return response()->json(["data" => $bets], 201);
     }
 
     /**
@@ -30,7 +31,7 @@ class BetApiController extends Controller
      */
     public function store(StoreBetRequest $request)
     {
-        if(session()->exists('bet_requested')){
+        if (session()->exists('bet_requested')) {
             return response()->json([
                 'errors' => [
                     'code' => '10',
@@ -42,16 +43,15 @@ class BetApiController extends Controller
         session()->save();
         $validatedBetData = $request->validated();
         sleep(1);
-        $betDataCollection = collect($validatedBetData);
 
         $user = User::find($validatedBetData['user_id']);
-        if(!$user){
+        if (!$user) {
             $user = factory(User::class)->create([
                 'id' => $validatedBetData['user_id']
             ]);
         }
 
-        if($user->balance < $validatedBetData['stake_amount']){
+        if ($user->balance < $validatedBetData['stake_amount']) {
             return $this->formatErrorResponse($validatedBetData, 11);
         }
 
@@ -66,7 +66,7 @@ class BetApiController extends Controller
         $user->save();
         $bet->save();
 
-        foreach($validatedBetData['selections'] as $selection){
+        foreach ($validatedBetData['selections'] as $selection) {
             $betSelection = new BetSelections();
             $betSelection->bet_id = $bet->id;
             $betSelection->selection_id = $selection['id'];
@@ -87,10 +87,11 @@ class BetApiController extends Controller
         return response()->json(null, 201);
     }
 
-    public function formatErrorResponse($validatedBetData, $errorCode){
-        switch($errorCode){
+    public function formatErrorResponse($validatedBetData, $errorCode)
+    {
+        switch ($errorCode) {
             case '11':
-                $errorMessage="Insufficient balance";
+                $errorMessage = "Insufficient balance";
         }
         $error = [
             [
@@ -114,7 +115,8 @@ class BetApiController extends Controller
      */
     public function show($id)
     {
-        //
+        $bet = Bet::findOrFail($id);
+        return response()->json(["data" => $bet], 201);
     }
 
     /**

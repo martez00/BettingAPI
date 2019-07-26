@@ -2,21 +2,34 @@
 
 namespace Tests\Feature\Bet;
 
+use App\Bet;
+use App\BetSelections;
 use App\Selection;
+use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class SaveBetTest extends TestCase
 {
     use DatabaseTransactions;
 
+    private $user;
+
+    private function createNewUser($balance = 1000)
+    {
+        $user = factory(User::class)->create(
+            ["balance" => $balance]
+        );
+        $this->user = $user;
+    }
     /**
      * @test
      * @group save_bet
      *
      * @return void
      */
-    public function empty_bet_request_returns_validation_errors_test()
+    public function can_not_save_bet_with_empty_data()
     {
         $response = $this->startJsonRequest()
             ->json('POST', 'api/V1/bet', [
@@ -43,15 +56,17 @@ class SaveBetTest extends TestCase
      *
      * @return void
      */
-    public function maximum_stake_amount_validation_errors_test()
+    public function can_not_save_bet_when_amount_is_more_than_max()
     {
+        $this->createNewUser();
+
         $selections = factory(Selection::class, 2)->create([
             'odds' => 1.85
         ]);
 
         $response = $this->startJsonRequest()
             ->json('POST', 'api/V1/bet', [
-                "user_id" => 1,
+                "user_id" => $this->user->id,
                 "stake_amount" => 20000,
                 "selections" => $selections->toArray()
             ]);
@@ -68,15 +83,17 @@ class SaveBetTest extends TestCase
      *
      * @return void
      */
-    public function minimum_stake_amount_validation_errors_test()
+    public function can_not_save_bet_when_amount_is_less_than_min()
     {
+        $this->createNewUser();
+
         $selections = factory(Selection::class, 2)->create([
             'odds' => 1.85
         ]);
 
         $response = $this->startJsonRequest()
             ->json('POST', 'api/V1/bet', [
-                "user_id" => 1,
+                "user_id" => $this->user->id,
                 "stake_amount" => 0.2,
                 "selections" => $selections->toArray()
             ]);
@@ -93,15 +110,17 @@ class SaveBetTest extends TestCase
      *
      * @return void
      */
-    public function maximum_selections_validation_errors_test()
+    public function can_not_save_bet_when_selections_amount_is_more_than_max()
     {
+        $this->createNewUser();
+
         $selections = factory(Selection::class, 20)->create([
             'odds' => 1.1
         ]);
 
         $response = $this->startJsonRequest()
             ->json('POST', 'api/V1/bet', [
-                "user_id" => 1,
+                "user_id" => $this->user->id,
                 "stake_amount" => 0.3,
                 "selections" => $selections->toArray()
             ]);
@@ -132,11 +151,13 @@ class SaveBetTest extends TestCase
      *
      * @return void
      */
-    public function minimum_selections_validation_errors_test()
+    public function can_not_save_bet_when_selections_amount_is_less_than_min()
     {
+        $this->createNewUser();
+
         $response = $this->startJsonRequest()
             ->json('POST', 'api/V1/bet', [
-                "user_id" => 1,
+                "user_id" => $this->user->id,
                 "stake_amount" => 0.3,
                 "selections" => []
             ]);
@@ -167,15 +188,17 @@ class SaveBetTest extends TestCase
      *
      * @return void
      */
-    public function bet_on_same_selection_validation_errors_test()
+    public function can_not_save_bet_when_there_are_same_selections()
     {
+        $this->createNewUser();
+
         $selection = factory(Selection::class)->create([
             'odds' => 1.1
         ]);
 
         $response = $this->startJsonRequest()
             ->json('POST', 'api/V1/bet', [
-                "user_id" => 1,
+                "user_id" => $this->user->id,
                 "stake_amount" => 0.3,
                 "selections" => [
                     $selection,
@@ -198,15 +221,17 @@ class SaveBetTest extends TestCase
      *
      * @return void
      */
-    public function minimum_odds_validation_errors_test()
+    public function can_not_save_bet_when_there_are_selection_with_odd_less_than_min()
     {
+        $this->createNewUser();
+
         $selection = factory(Selection::class)->create([
             'odds' => 0.9
         ]);
 
         $response = $this->startJsonRequest()
             ->json('POST', 'api/V1/bet', [
-                "user_id" => 1,
+                "user_id" => $this->user->id,
                 "stake_amount" => 0.3,
                 "selections" => [
                     $selection,
@@ -244,15 +269,17 @@ class SaveBetTest extends TestCase
      *
      * @return void
      */
-    public function maximum_odds_validation_errors_test()
+    public function can_not_save_bet_when_there_are_selection_with_odd_more_than_max()
     {
+        $this->createNewUser();
+
         $selection = factory(Selection::class)->create([
             'odds' => 10001
         ]);
 
         $response = $this->startJsonRequest()
             ->json('POST', 'api/V1/bet', [
-                "user_id" => 1,
+                "user_id" => $this->user->id,
                 "stake_amount" => 0.3,
                 "selections" => [
                     $selection,
@@ -290,15 +317,17 @@ class SaveBetTest extends TestCase
      *
      * @return void
      */
-    public function maximum_win_amount_validation_error_test()
+    public function can_not_save_bet_when_win_amount_is_more_than_max()
     {
+        $this->createNewUser();
+
         $selection = factory(Selection::class)->create([
             'odds' => 5000
         ]);
 
         $response = $this->startJsonRequest()
             ->json('POST', 'api/V1/bet', [
-                "user_id" => 1,
+                "user_id" => $this->user->id,
                 "stake_amount" => 3,
                 "selections" => [
                     $selection,
@@ -309,5 +338,198 @@ class SaveBetTest extends TestCase
         $maxAmountError = collect($response->json('errors'))->where('code', 9)->first();
         $this->assertNotNull($maxAmountError);
         $this->assertEquals('Maximum win amount is 10000', $maxAmountError['message']);
+    }
+
+    /**
+     * @test
+     * @group save_bet
+     *
+     * @return void
+     */
+    public function can_not_save_bet_when_balance_is_insufficient()
+    {
+        $this->createNewUser(1100);
+
+        $selection = factory(Selection::class)->create([
+            'odds' => 1.85
+        ]);
+
+        $response = $this->startJsonRequest()
+            ->json('POST', 'api/V1/bet', [
+                "user_id" => $this->user->id,
+                "stake_amount" => 1200,
+                "selections" => [
+                    $selection,
+                ]
+            ]);
+        $response->assertStatus(400);
+
+        $errors = collect($response->json('errors'));
+        $this->assertNotNull($errors);
+
+        $balanceError = $errors->where('code', 11)->first();
+        $this->assertNotNull($balanceError);
+    }
+
+    /**
+     * @test
+     * @group save_bet
+     *
+     * @return void
+     */
+    public function user_is_created_when_was_not_during_bet_save()
+    {
+        $lastUser = User::orderBy('id', 'desc')->first();
+        $notTakenID = $lastUser->id + 1;
+
+        $user = User::find($notTakenID);
+        $this->assertNull($user);
+
+        $selections = factory(Selection::class, 2)->create([
+            'odds' => 1.89
+        ]);
+
+        $response = $this->startJsonRequest()
+            ->json('POST', 'api/V1/bet', [
+                "user_id" => $notTakenID,
+                "stake_amount" => 5,
+                "selections" => $selections->toArray()
+            ]);
+        $response->assertStatus(201);
+
+        $user = User::find($notTakenID);
+        $this->assertNotNull($user);
+        $this->assertEquals($notTakenID, $user->id);
+    }
+
+    /**
+     * @test
+     * @group save_bet
+     *
+     * @return void
+     */
+    public function can_save_bet()
+    {
+        $this->createNewUser();
+
+        $selections = factory(Selection::class, 2)->create([
+            'odds' => 1.89
+        ]);
+
+        $response = $this->startJsonRequest()
+            ->json('POST', 'api/V1/bet', [
+                "user_id" => $this->user->id,
+                "stake_amount" => 5,
+                "selections" => $selections->toArray()
+            ]);
+        $response->assertStatus(201);
+
+        $createdBet = Bet::where('user_id', $this->user->id)->where('stake_amount', 5)->orderBy('created_at', 'desc')->first();
+        $this->assertNotNull($createdBet);
+    }
+
+    /**
+     * @test
+     * @group save_bet
+     *
+     * @return void
+     */
+    public function can_save_bet_and_bet_selections()
+    {
+        $this->createNewUser();
+
+        $selections = factory(Selection::class, 2)->create([
+            'odds' => 1.89
+        ]);
+
+        $response = $this->startJsonRequest()
+            ->json('POST', 'api/V1/bet', [
+                "user_id" => $this->user->id,
+                "stake_amount" => 5,
+                "selections" => $selections->toArray()
+            ]);
+        $response->assertStatus(201);
+
+        $createdBet = Bet::where('user_id', $this->user->id)->where('stake_amount', 5)->orderBy('created_at', 'desc')->first();
+        $this->assertNotNull($createdBet);
+
+        $betSelections = BetSelections::where('bet_id', $createdBet->id)->get();
+        $this->assertNotNull($betSelections);
+
+        $selections->each(function ($selection) use ($betSelections) {
+            $selectionExistInBetSelections = $betSelections->where('selection_id', $selection->id)->first();
+            $this->assertNotNull($selectionExistInBetSelections);
+        });
+    }
+
+    /**
+     * @test
+     * @group save_bet
+     *
+     * @return void
+     */
+    public function user_balance_is_changed_after_succesfully_bet()
+    {
+        $this->createNewUser();
+        $balanceBeforeBet = $this->user->balance;
+
+        $selections = factory(Selection::class, 2)->create([
+            'odds' => 1.89
+        ]);
+        $stakeAmount = 20;
+
+        $response = $this->startJsonRequest()
+            ->json('POST', 'api/V1/bet', [
+                "user_id" => $this->user->id,
+                "stake_amount" => $stakeAmount,
+                "selections" => $selections->toArray()
+            ]);
+        $response->assertStatus(201);
+
+        $user = User::find($this->user->id);
+        $balanceAfterBet = $user->balance;
+
+        $this->assertNotEquals($balanceAfterBet, $balanceBeforeBet);
+        $this->assertEquals($balanceBeforeBet, $balanceAfterBet + $stakeAmount);
+    }
+
+    /**
+     * @test
+     * @group save_bet
+     *
+     * @return void
+     */
+    public function balance_transactions_is_saved_after_succesfully_bet()
+    {
+        $this->createNewUser();
+        $balanceBeforeBet = $this->user->balance;
+
+        $selections = factory(Selection::class, 2)->create([
+            'odds' => 1.89
+        ]);
+        $stakeAmount = 20;
+
+        $response = $this->startJsonRequest()
+            ->json('POST', 'api/V1/bet', [
+                "user_id" => $this->user->id,
+                "stake_amount" => $stakeAmount,
+                "selections" => $selections->toArray()
+            ]);
+        $response->assertStatus(201);
+
+        $user = User::find($this->user->id);
+        $balanceAfterBet = $user->balance;
+
+        $this->assertNotEquals($balanceAfterBet, $balanceBeforeBet);
+        $this->assertEquals($balanceBeforeBet, $balanceAfterBet + $stakeAmount);
+
+        $blanaceTransactions = DB::table("balance_transactions")
+            ->select("*")
+            ->where('amount', $balanceAfterBet)
+            ->where('amount_before', $balanceBeforeBet)
+            ->where(DB::raw('DATE_FORMAT(date_time, "%Y-%m-%d %H")'), date("Y-m-d H"))
+            ->get()
+            ->first();
+        $this->assertNotNull($blanaceTransactions);
     }
 }
