@@ -37,15 +37,15 @@ class SaveBetTest extends TestCase
         $response->assertStatus(400);
         $errors = collect($response->json('errors'));
 
-        $userError = $errors->where('message', 'User ID field is required!')->first();
+        $userError = $errors->where('message', 'User ID field is required')->first();
         $this->assertNotNull($userError);
         $this->assertEquals('0', $userError['code']);
 
-        $amountError = $errors->where('message', 'Stake amount field is required!')->first();
+        $amountError = $errors->where('message', 'Stake amount field is required')->first();
         $this->assertNotNull($amountError);
         $this->assertEquals('0', $amountError['code']);
 
-        $betslipError = $errors->where('message', 'Minimum number of selections is 1!')->first();
+        $betslipError = $errors->where('message', 'Minimum number of selections is 1')->first();
         $this->assertNotNull($betslipError);
         $this->assertEquals('4', $betslipError['code']);
     }

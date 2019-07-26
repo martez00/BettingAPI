@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\User;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -11,6 +12,14 @@ class StoreBetRequest extends FormRequest
 {
     public function __construct(ValidationFactory $validationFactory)
     {
+        $validationFactory->extend(
+            'more_than_stake_amount',
+            function ($attribute, $value, $parameters) {
+                if ($value > $this->stake_amount) return true;
+            },
+            'Insufficient balance'
+        );
+
         $validationFactory->extend(
             'max_win_amount',
             function ($attribute, $value, $parameters) {
@@ -149,11 +158,13 @@ class StoreBetRequest extends FormRequest
     public function rules()
     {
         return [
+            'another_bet_request_initialized' => 'in:0',
             'user_id' => 'required',
             'stake_amount' => 'required|amount_format|min_amount:0.3|max_amount:10000',
             'selections' => 'required|min_selections:1|max_selections:20',
             'selections.*.id' => 'required|exists:selections,id|distinct',
             'selections.*.odds' => 'required|odds_format|min_odds:1|max_odds:10000',
+            'user_balance' => 'more_than_stake_amount',
             'max_win' => 'max_win_amount:10000'
         ];
     }
@@ -161,21 +172,23 @@ class StoreBetRequest extends FormRequest
     public function messages()
     {
         return [
-            'user_id.required' => ["code" => 0, "message" => "User ID field is required!"],
-            'stake_amount.required' => ["code" => 0, "message" => "Stake amount field is required!"],
+            'another_bet_request_initialized.in' => ["code" => 10, "message" => "Your previous action is not finished yet"],
+            'user_id.required' => ["code" => 0, "message" => "User ID field is required"],
+            'stake_amount.required' => ["code" => 0, "message" => "Stake amount field is required"],
             'stake_amount.amount_format' => ["code" => 0, "message" => "Stake amount format is invalid!"],
             'stake_amount.min_amount' => ["code" => 2, "message" => "Minimum stake amount is :min_amount"],
             'stake_amount.max_amount' => ["code" => 3, "message" => "Maximum stake amount is :max_amount"],
-            'selections.required' => ["code" => 4, "message" => "Minimum number of selections is 1!"],
-            'selections.min_selections' => ["code" => 4, "message" => "Minimum number of selections is :min_selections!"],
+            'selections.required' => ["code" => 4, "message" => "Minimum number of selections is 1"],
+            'selections.min_selections' => ["code" => 4, "message" => "Minimum number of selections is :min_selections"],
             'selections.max_selections' => ["code" => 5, "message" => "Maximum number of selections is :max_selections"],
-            'selections.*.id.required' => ["code" => 0, "message" => "Selection ID is required!"],
-            'selections.*.id.exists' => ["code" => 0, "message" => "Selection does not exist!"],
+            'selections.*.id.required' => ["code" => 0, "message" => "Selection ID is required"],
+            'selections.*.id.exists' => ["code" => 0, "message" => "Selection does not exist"],
             'selections.*.id.distinct' => ["code" => 8, "message" => "Duplicate selection found"],
-            'selections.*.odds.required' => ["code" => 0, "message" => "Selection :attribute odds is required!"],
-            'selections.*.odds.odds_format' => ["code" => 0, "message" => "Selection :attribute odd format is invalid!"],
+            'selections.*.odds.required' => ["code" => 0, "message" => "Selection :attribute odds is required"],
+            'selections.*.odds.odds_format' => ["code" => 0, "message" => "Selection :attribute odd format is invalid"],
             'selections.*.min_odds' => ["code" => 6, "message" => "Minimum odds are :min_odds"],
             'selections.*.max_odds' => ["code" => 7, "message" => "Maximum odds are :max_odds"],
+            'user_balance.more_than_stake_amount' => ["code" => 11, "message" => "Insufficient balance"],
             'max_win.max_win_amount' => ["code" => 9, "message" => "Maximum win amount is :max_win_amount"],
         ];
     }
@@ -188,16 +201,38 @@ class StoreBetRequest extends FormRequest
      */
     protected function getValidatorInstance()
     {
+        if (!session()->exists('bet_requested')) {
+            session()->put('bet_requested', '1');
+            session()->save();
+            $this->merge([
+                'another_bet_request_initialized' => 0
+            ]);
+        }
+        else {
+            $this->merge([
+                'another_bet_request_initialized' => 1
+            ]);
+        }
+        if ($this->input('user_id')) {
+            $user = User::find($this->input('user_id'));
+            if ($user) {
+                $userBalance = $user->balance;
+            } else $userBalance = 1000; //because docummentation says that default balance is 1000
+            $this->merge([
+                'user_balance' => $userBalance
+            ]);
+        }
 
-        if ($this->input('selections')) {
+        if ($this->input('selections') && $this->input('stake_amount')) {
             $oddsSum = 1;
             foreach ($this->input('selections') as $selection) {
                 $oddsSum = $oddsSum * $selection['odds'];
             }
-        } else $oddsSum = 0;
+            $maxWin = $this->input('stake_amount') * $oddsSum;
+        } else $maxWin = 0;
 
         $this->merge([
-            'max_win' => $this->input('stake_amount') * $oddsSum
+            'max_win' => $maxWin,
         ]);
 
         return parent::getValidatorInstance();
@@ -246,6 +281,8 @@ class StoreBetRequest extends FormRequest
             }
         }
         $mainErrors = json_decode(json_encode($mainErrors, JSON_FORCE_OBJECT), true);
+        session()->forget(['bet_requested']);
+        session()->save();
         throw new HttpResponseException(response()->json([
             'user_id' => $this->input('user_id'),
             'stake_amount' => $this->input('stake_amount'),
