@@ -2,157 +2,25 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\Bet\ValidBalanceIsMoreThanStakeAmount;
+use App\Rules\Bet\ValidMaxOdd;
+use App\Rules\Bet\ValidMaxSelections;
+use App\Rules\Bet\ValidMaxStakeAmount;
+use App\Rules\Bet\ValidMaxWinAmount;
+use App\Rules\Bet\ValidMinOdd;
+use App\Rules\Bet\ValidMinSelections;
+use App\Rules\Bet\ValidMinStakeAmount;
+use App\Rules\Bet\ValidOddsFormat;
+use App\Rules\Bet\ValidStakeAmountFormat;
 use App\User;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Validation\Factory as ValidationFactory;
 
 class StoreBetRequest extends FormRequest
 {
-    public function __construct(ValidationFactory $validationFactory)
+    public function __construct()
     {
-        $validationFactory->extend(
-            'more_than_stake_amount',
-            function ($attribute, $value, $parameters) {
-                if ($value > $this->stake_amount) {
-                    return true;
-                }
-            },
-            'Insufficient balance'
-        );
-
-        $validationFactory->extend(
-            'max_win_amount',
-            function ($attribute, $value, $parameters) {
-                if ($value <= $parameters[0]) {
-                    return true;
-                }
-            },
-            'Maximum win amount is :max_win_amount'
-        );
-
-        $validationFactory->replacer('max_win_amount', function ($message, $attribute, $rule, $parameters) {
-            $maxWinAmount = $parameters[0];
-
-            return str_replace(':max_win_amount', $maxWinAmount, $message);
-        });
-
-        $validationFactory->extend(
-            'min_selections',
-            function ($attribute, $value, $parameters) {
-                if (sizeof($value) >= $parameters[0]) {
-                    return true;
-                }
-            },
-            "There must be at least :min_selections selections!"
-        );
-
-
-        $validationFactory->extend(
-            'max_selections',
-            function ($attribute, $value, $parameters) {
-                if (sizeof($value) <= $parameters[0]) {
-                    return true;
-                }
-            },
-            'There must be less than :max_selections selections!'
-        );
-
-        $validationFactory->replacer('min_selections', function ($message, $attribute, $rule, $parameters) {
-            $minSelections = $parameters[0];
-
-            return str_replace(':min_selections', $minSelections, $message);
-        });
-
-        $validationFactory->replacer('max_selections', function ($message, $attribute, $rule, $parameters) {
-            $maxSelections = $parameters[0];
-
-            return str_replace(':max_selections', $maxSelections, $message);
-        });
-
-
-        $validationFactory->extend(
-            'odds_format',
-            function ($attribute, $value, $parameters) {
-                return preg_match('/^\d{0,8}(\.\d{1,3})?$/', $value);
-            },
-            'Odds format is incorrect!'
-        );
-
-        $validationFactory->extend(
-            'min_odds',
-            function ($attribute, $value, $parameters) {
-                if ($value >= $parameters[0]) {
-                    return true;
-                }
-            },
-            "Odds must be at least :min_odds!"
-        );
-
-
-        $validationFactory->extend(
-            'max_odds',
-            function ($attribute, $value, $parameters) {
-                if ($value <= $parameters[0]) {
-                    return true;
-                }
-            },
-            'Odds must be less than :max_odds!'
-        );
-
-        $validationFactory->replacer('min_odds', function ($message, $attribute, $rule, $parameters) {
-            $minOdds = $parameters[0];
-
-            return str_replace(':min_odds', $minOdds, $message);
-        });
-
-        $validationFactory->replacer('max_odds', function ($message, $attribute, $rule, $parameters) {
-            $maxOdds = $parameters[0];
-
-            return str_replace(':max_odds', $maxOdds, $message);
-        });
-
-        $validationFactory->extend(
-            'amount_format',
-            function ($attribute, $value, $parameters) {
-                return preg_match('/^\d{0,8}(\.\d{1,2})?$/', $value);
-            },
-            'Stake amount format is incorrect!'
-        );
-
-        $validationFactory->extend(
-            'min_amount',
-            function ($attribute, $value, $parameters) {
-                if ($value >= $parameters[0]) {
-                    return true;
-                }
-            },
-            "Stake amount must be at least :min_amount!"
-        );
-
-
-        $validationFactory->extend(
-            'max_amount',
-            function ($attribute, $value, $parameters) {
-                if ($value <= $parameters[0]) {
-                    return true;
-                }
-            },
-            'Stake amount must be less than :max_amount!'
-        );
-
-        $validationFactory->replacer('min_amount', function ($message, $attribute, $rule, $parameters) {
-            $minAmount = $parameters[0];
-
-            return str_replace(':min_amount', $minAmount, $message);
-        });
-
-        $validationFactory->replacer('max_amount', function ($message, $attribute, $rule, $parameters) {
-            $maxAmount = $parameters[0];
-
-            return str_replace(':max_amount', $maxAmount, $message);
-        });
 
     }
 
@@ -173,15 +41,34 @@ class StoreBetRequest extends FormRequest
      */
     public function rules()
     {
+        //min_odds:1|max_odds:10000
         return [
             'another_bet_request_initialized' => 'in:0',
             'user_id' => 'required',
-            'stake_amount' => 'required|amount_format|min_amount:0.3|max_amount:10000',
-            'selections' => 'required|min_selections:1|max_selections:20',
+            'stake_amount' => [
+                'required',
+                new ValidStakeAmountFormat(),
+                new ValidMinStakeAmount(0.3),
+                new ValidMaxStakeAmount(10000)
+            ],
+            'selections' => [
+                'required',
+                new ValidMinSelections(1),
+                new ValidMaxSelections(20)
+            ],
             'selections.*.id' => 'required|exists:selections,id|distinct',
-            'selections.*.odds' => 'required|odds_format|min_odds:1|max_odds:10000',
-            'user_balance' => 'more_than_stake_amount',
-            'max_win' => 'max_win_amount:10000'
+            'selections.*.odds' => [
+                'required',
+                new ValidOddsFormat(),
+                new ValidMinOdd(1),
+                new ValidMaxOdd(10000)
+            ],
+            'user_balance' => [
+                new ValidBalanceIsMoreThanStakeAmount($this->stake_amount)
+            ],
+            'max_win' => [
+                new ValidMaxWinAmount(10000)
+            ]
         ];
     }
 
@@ -194,27 +81,11 @@ class StoreBetRequest extends FormRequest
             ],
             'user_id.required' => ["code" => 0, "message" => "User ID field is required"],
             'stake_amount.required' => ["code" => 0, "message" => "Stake amount field is required"],
-            'stake_amount.amount_format' => ["code" => 0, "message" => "Stake amount format is invalid!"],
-            'stake_amount.min_amount' => ["code" => 2, "message" => "Minimum stake amount is :min_amount"],
-            'stake_amount.max_amount' => ["code" => 3, "message" => "Maximum stake amount is :max_amount"],
             'selections.required' => ["code" => 4, "message" => "Minimum number of selections is 1"],
-            'selections.min_selections' => [
-                "code" => 4,
-                "message" => "Minimum number of selections is :min_selections"
-            ],
-            'selections.max_selections' => [
-                "code" => 5,
-                "message" => "Maximum number of selections is :max_selections"
-            ],
             'selections.*.id.required' => ["code" => 0, "message" => "Selection ID is required"],
             'selections.*.id.exists' => ["code" => 0, "message" => "Selection does not exist"],
             'selections.*.id.distinct' => ["code" => 8, "message" => "Duplicate selection found"],
             'selections.*.odds.required' => ["code" => 0, "message" => "Selection :attribute odds is required"],
-            'selections.*.odds.odds_format' => ["code" => 0, "message" => "Selection :attribute odd format is invalid"],
-            'selections.*.min_odds' => ["code" => 6, "message" => "Minimum odds are :min_odds"],
-            'selections.*.max_odds' => ["code" => 7, "message" => "Maximum odds are :max_odds"],
-            'user_balance.more_than_stake_amount' => ["code" => 11, "message" => "Insufficient balance"],
-            'max_win.max_win_amount' => ["code" => 9, "message" => "Maximum win amount is :max_win_amount"],
         ];
     }
 
@@ -297,6 +168,9 @@ class StoreBetRequest extends FormRequest
                     }
                 } else {
                     $mainErrors[] = $valueB;
+                    if ($valueB['code'] == 10) {
+                        $previoussActionError = 1;
+                    }
                 }
             }
         }
@@ -318,8 +192,10 @@ class StoreBetRequest extends FormRequest
             }
         }
         $mainErrors = json_decode(json_encode($mainErrors, JSON_FORCE_OBJECT), true);
-        session()->forget(['bet_requested']);
-        session()->save();
+        if ( ! $previoussActionError) {
+            session()->forget(['bet_requested']);
+            session()->save();
+        }
         throw new HttpResponseException(response()->json([
             'user_id' => $this->input('user_id'),
             'stake_amount' => $this->input('stake_amount'),
