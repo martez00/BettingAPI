@@ -109,19 +109,22 @@ class StoreBetRequest extends FormRequest
             ]);
         }
 
-        $this->merge([
-            'stake_amount' => str_replace(',', '.', $this->input('stake_amount')),
-        ]);
-
-        $selections = $this->input('selections');
-        foreach ($selections as $selection) {
-            $selectionOdd = str_replace(',', '.', $selection['odds']);
-            $selection['odds'] = $selectionOdd;
-            $formatedSelections[] = $selection;
+        if ($this->input('stake_amount')) {
+            $this->merge([
+                'stake_amount' => str_replace(',', '.', $this->input('stake_amount')),
+            ]);
         }
-        $this->merge([
-            'selections' => $formatedSelections
-        ]);
+
+        if ($this->input('selections')) {
+            foreach ($this->input('selections') as $selection) {
+                $selectionOdd = str_replace(',', '.', $selection['odds']);
+                $selection['odds'] = $selectionOdd;
+                $formatedSelections[] = $selection;
+            }
+            $this->merge([
+                'selections' => $formatedSelections
+            ]);
+        }
 
         if ($this->input('user_id')) {
             $user = User::find($this->input('user_id'));
