@@ -41,7 +41,6 @@ class StoreBetRequest extends FormRequest
      */
     public function rules()
     {
-        //min_odds:1|max_odds:10000
         return [
             'another_bet_request_initialized' => 'in:0',
             'user_id' => 'required|integer',

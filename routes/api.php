@@ -19,8 +19,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::prefix('V1')->group(function () {
     Route::group(['middleware' => ['sessions']], function () {
-        Route::post('bet', 'Api\V1\BetApiController@store');
+        Route::post('bet', 'Api\V1\Bet\BetApiController@store');
     });
-    Route::get('bet/{id}', 'Api\V1\BetApiController@show');
-    Route::get('bets', 'Api\V1\BetApiController@index');
+    Route::get('bet/{id}', 'Api\V1\Bet\BetApiController@show');
+    Route::get('bets', 'Api\V1\Bet\BetApiController@index');
 });

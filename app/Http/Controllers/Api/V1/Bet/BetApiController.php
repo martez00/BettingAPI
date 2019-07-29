@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Api\V1;
+namespace App\Http\Controllers\Api\V1\Bet;
 
 use App\BalanceTransaction;
 use App\Bet;
 use App\BetSelections;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\BetsRequest;
 use App\Http\Requests\StoreBetRequest;
 use App\User;
 use Illuminate\Http\Request;
@@ -17,9 +18,14 @@ class BetApiController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(BetsRequest $request)
     {
-        $bets = Bet::all();
+        $validatedRequestData = $request->validated();
+        if (isset($validatedRequestData['type']) && $validatedRequestData['type'] == "quantity") {
+            $bets = Bet::all()->count();
+        } else {
+            $bets = Bet::all();
+        }
         return response()->json(["data" => $bets], 200);
     }
 
@@ -100,7 +106,6 @@ class BetApiController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int $id
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
