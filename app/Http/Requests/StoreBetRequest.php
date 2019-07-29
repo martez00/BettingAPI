@@ -44,7 +44,7 @@ class StoreBetRequest extends FormRequest
         //min_odds:1|max_odds:10000
         return [
             'another_bet_request_initialized' => 'in:0',
-            'user_id' => 'required',
+            'user_id' => 'required|numeric',
             'stake_amount' => [
                 'required',
                 new ValidStakeAmountFormat(),
@@ -80,6 +80,7 @@ class StoreBetRequest extends FormRequest
                 "message" => "Your previous action is not finished yet"
             ],
             'user_id.required' => ["code" => 0, "message" => "User ID field is required"],
+            'user_id.numeric' => ["code" => 0, "message" => "User ID field must be numeric"],
             'stake_amount.required' => ["code" => 0, "message" => "Stake amount field is required"],
             'selections.required' => ["code" => 4, "message" => "Minimum number of selections is 1"],
             'selections.*.id.required' => ["code" => 0, "message" => "Selection ID is required"],
@@ -210,10 +211,12 @@ class StoreBetRequest extends FormRequest
             }
         }
         $mainErrors = json_decode(json_encode($mainErrors, JSON_FORCE_OBJECT), true);
+
         if ($previoussActionError != true) {
             session()->forget(['bet_requested']);
             session()->save();
         }
+
         throw new HttpResponseException(response()->json([
             'user_id' => $this->input('user_id'),
             'stake_amount' => $this->input('stake_amount'),
