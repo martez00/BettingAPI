@@ -108,6 +108,21 @@ class StoreBetRequest extends FormRequest
                 'another_bet_request_initialized' => 1
             ]);
         }
+
+        $this->merge([
+            'stake_amount' => str_replace(',', '.', $this->input('stake_amount')),
+        ]);
+
+        $selections = $this->input('selections');
+        foreach ($selections as $selection) {
+            $selectionOdd = str_replace(',', '.', $selection['odds']);
+            $selection['odds'] = $selectionOdd;
+            $formatedSelections[] = $selection;
+        }
+        $this->merge([
+            'selections' => $formatedSelections
+        ]);
+
         if ($this->input('user_id')) {
             $user = User::find($this->input('user_id'));
             if ($user) {
@@ -129,7 +144,6 @@ class StoreBetRequest extends FormRequest
         } else {
             $maxWin = 0;
         }
-
         $this->merge([
             'max_win' => $maxWin,
         ]);
