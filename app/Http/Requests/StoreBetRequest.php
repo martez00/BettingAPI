@@ -44,7 +44,7 @@ class StoreBetRequest extends FormRequest
         //min_odds:1|max_odds:10000
         return [
             'another_bet_request_initialized' => 'in:0',
-            'user_id' => 'required|numeric',
+            'user_id' => 'required|integer',
             'stake_amount' => [
                 'required',
                 new ValidStakeAmountFormat(),
@@ -80,7 +80,7 @@ class StoreBetRequest extends FormRequest
                 "message" => "Your previous action is not finished yet"
             ],
             'user_id.required' => ["code" => 0, "message" => "User ID field is required"],
-            'user_id.numeric' => ["code" => 0, "message" => "User ID field must be numeric"],
+            'user_id.integer' => ["code" => 0, "message" => "User ID field must be integer"],
             'stake_amount.required' => ["code" => 0, "message" => "Stake amount field is required"],
             'selections.required' => ["code" => 4, "message" => "Minimum number of selections is 1"],
             'selections.*.id.required' => ["code" => 0, "message" => "Selection ID is required"],
