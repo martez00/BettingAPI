@@ -148,6 +148,7 @@ class StoreBetRequest extends FormRequest
      */
     protected function failedValidation(Validator $validator)
     {
+        $previoussActionError = false;
         $mainErrors = array();
         $selectionsErrors = array();
         $selectionsArray = array();
@@ -169,7 +170,7 @@ class StoreBetRequest extends FormRequest
                 } else {
                     $mainErrors[] = $valueB;
                     if ($valueB['code'] == 10) {
-                        $previoussActionError = 1;
+                        $previoussActionError = true;
                     }
                 }
             }
@@ -192,7 +193,7 @@ class StoreBetRequest extends FormRequest
             }
         }
         $mainErrors = json_decode(json_encode($mainErrors, JSON_FORCE_OBJECT), true);
-        if ( ! $previoussActionError) {
+        if ($previoussActionError != true) {
             session()->forget(['bet_requested']);
             session()->save();
         }
