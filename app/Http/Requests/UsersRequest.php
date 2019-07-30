@@ -7,7 +7,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class BetsRequest extends FormRequest
+class UsersRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -27,11 +27,9 @@ class BetsRequest extends FormRequest
     public function rules()
     {
         return [
-            'order_by' => [new ValidColumnExist("bets")],
+            'order_by' => [new ValidColumnExist("users")],
             'order_by_keyword' => 'in:DESC,ASC',
-            'limit' => 'integer',
-            'user_info' => 'in:true,false',
-            'selection_info' => 'in:true,false'
+            'limit' => 'integer'
         ];
     }
 
@@ -40,19 +38,11 @@ class BetsRequest extends FormRequest
         return [
             'order_by_keyword.in' => [
                 "code" => 0,
-                "message" => "Order by must be DESC or ASC"
+                "message" => "Order by must be DESC or ASC!"
             ],
             'limit.integer' => [
                 "code" => 0,
                 "message" => "Limit must be integer"
-            ],
-            'user_info.in' => [
-                "code" => 0,
-                "message" => "User info must be true or false"
-            ],
-            'selection_info.in' => [
-                "code" => 0,
-                "message" => "Selection info must be true or false"
             ]
         ];
     }

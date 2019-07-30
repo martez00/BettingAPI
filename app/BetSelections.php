@@ -12,11 +12,11 @@ class BetSelections extends Model
 
     public function bet()
     {
-        return $this->hasOne('App\Bet');
+        return $this->belongsTo('App\Bet');
     }
 
     public function selection()
     {
-        return $this->hasOne('App\Selection');
+        return $this->belongsTo('App\Selection');
     }
 }

@@ -1,22 +1,23 @@
 <?php
 
-namespace App\Rules\Bet;
+namespace App\Rules;
 
 use Illuminate\Contracts\Validation\Rule;
+use Illuminate\Support\Facades\Schema;
 
-class ValidMinStakeAmount implements Rule
+class ValidColumnExist implements Rule
 {
     private $value;
-    private $minValue;
+    private $table;
 
     /**
      * Create a new rule instance.
      *
      * @return void
      */
-    public function __construct($minValue)
+    public function __construct($table)
     {
-        $this->minValue = $minValue;
+        $this->table = $table;
     }
 
     /**
@@ -29,7 +30,7 @@ class ValidMinStakeAmount implements Rule
     public function passes($attribute, $value)
     {
         $this->value = $value;
-        if ($this->value >= $this->minValue) {
+        if (Schema::hasColumn($this->table, $this->value)) {
             return true;
         }
     }
@@ -41,6 +42,6 @@ class ValidMinStakeAmount implements Rule
      */
     public function message()
     {
-        return array(["code" => 2, "message" => "Minimum stake amount is $this->minValue"]);
+        return array(["code" => 0, "message" => "Selected order by column does not exist in $this->table table"]);
     }
 }

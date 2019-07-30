@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\V1\User;
 
 use App\Http\Requests\UsersByMonthRequest;
+use App\Http\Requests\UsersRequest;
+use App\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
@@ -13,9 +15,23 @@ class UserApiController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
+    public function index(UsersRequest $request)
     {
-        //
+        $query = User::select('*');
+
+        $query->when(request()->has('order_by'), function ($q) {
+            if(request()->has('order_by_keyword')) $orderByKeyword = request()->get('order_by_keyword');
+            else $orderByKeyword = "ASC";
+            $q->orderBy(request()->get('order_by'), $orderByKeyword);
+        });
+
+        $query->when(request()->has('limit'), function ($q) {
+            $q->take(request()->get('limit'));
+        });
+
+        $users = $query->get();
+
+        return response()->json(["data" => $users], 200);
     }
 
     /**

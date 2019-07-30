@@ -21,7 +21,11 @@ Route::prefix('V1')->group(function () {
     Route::group(['middleware' => ['sessions']], function () {
         Route::post('bet', 'Api\V1\Bet\BetApiController@store');
     });
-    Route::get('bet/{id}', 'Api\V1\Bet\BetApiController@show');
+
+    Route::get('bets/{id}', 'Api\V1\Bet\BetApiController@show');
     Route::get('bets', 'Api\V1\Bet\BetApiController@index');
+
     Route::get('statistic/months', 'Api\V1\Statistic\StatisticApiController@byMonth');
+
+    Route::get('users', 'Api\V1\User\UserApiController@index');
 });

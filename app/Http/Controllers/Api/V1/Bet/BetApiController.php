@@ -21,11 +21,32 @@ class BetApiController extends Controller
      */
     public function index(BetsRequest $request)
     {
-        $validatedRequestData = $request->validated();
-        $bets = Bet::all();
-        if (isset($validatedRequestData['type']) && $validatedRequestData['type'] == "quantity") {
-            $bets = $bets->count();
-        }
+        $query = Bet::select('*');
+
+        $query->when(request()->has('order_by'), function ($q) {
+            if(request()->has('order_by_keyword')) $orderByKeyword = request()->get('order_by_keyword');
+            else $orderByKeyword = "ASC";
+            $q->orderBy(request()->get('order_by'), $orderByKeyword);
+        });
+
+        $query->when(request()->has('limit'), function ($q) {
+            $q->take(request()->get('limit'));
+        });
+
+        $query->when(request()->has('user_info'), function ($q) {
+            if(request()->get('user_info') == "true"){
+                $q->with('user');
+            }
+        });
+
+        $query->when(request()->has('selection_info'), function ($q) {
+            if(request()->get('selection_info') == "true"){
+                $q->with('betSelections')->with('betSelections.selection', 'betSelections');
+            }
+        });
+
+        $bets = $query->get();
+
         return response()->json(["data" => $bets], 200);
     }
 
@@ -41,7 +62,7 @@ class BetApiController extends Controller
         sleep(1);
 
         $user = User::find($validatedBetData['user_id']);
-        if ( ! $user) {
+        if ( ! $user) { //documentation says that if there are no user - then create it
             $user = factory(User::class)->create([
                 'id' => $validatedBetData['user_id']
             ]);
