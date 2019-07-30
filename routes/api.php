@@ -23,4 +23,5 @@ Route::prefix('V1')->group(function () {
     });
     Route::get('bet/{id}', 'Api\V1\Bet\BetApiController@show');
     Route::get('bets', 'Api\V1\Bet\BetApiController@index');
+    Route::get('statistic/months', 'Api\V1\Statistic\StatisticApiController@byMonth');
 });

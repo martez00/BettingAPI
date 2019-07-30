@@ -6,6 +6,7 @@ use App\BalanceTransaction;
 use App\Bet;
 use App\BetSelections;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StatisticsByMonthRequest;
 use App\Http\Requests\BetsRequest;
 use App\Http\Requests\StoreBetRequest;
 use App\User;
@@ -21,10 +22,9 @@ class BetApiController extends Controller
     public function index(BetsRequest $request)
     {
         $validatedRequestData = $request->validated();
+        $bets = Bet::all();
         if (isset($validatedRequestData['type']) && $validatedRequestData['type'] == "quantity") {
-            $bets = Bet::all()->count();
-        } else {
-            $bets = Bet::all();
+            $bets = $bets->count();
         }
         return response()->json(["data" => $bets], 200);
     }

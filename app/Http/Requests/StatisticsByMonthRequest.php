@@ -6,7 +6,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class BetsRequest extends FormRequest
+class StatisticsByMonthRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,16 +26,34 @@ class BetsRequest extends FormRequest
     public function rules()
     {
         return [
-            'type' => 'in:quantity, null',
+            'last_timestamp' => 'date_format:Y-m-d H:i:s',
+            'quantity' => 'required|integer',
+            'table' => 'required|in:bets,users,balance_transactions'
         ];
     }
 
     public function messages()
     {
         return [
-            'type.in' => [
+            'last_timestamp.date_format' => [
                 "code" => 0,
-                "message" => "Bets [GET] type must be quantity or not assigned!"
+                "message" => "Statistics by month [GET] date format must be 'Y-m-d H:i:s'"
+            ],
+            'quantity.required' => [
+                "code" => 0,
+                "message" => "Statistics by month [GET] months is required"
+            ],
+            'quantity.integer' => [
+                "code" => 0,
+                "message" => "Statistics by month [GET] months type must be integer"
+            ],
+            'table.required' => [
+                "code" => 0,
+                "message" => "Statistics by month [GET] table is required"
+            ],
+            'table.in' => [
+                "code" => 0,
+                "message" => "Statistics by month [GET] table is invalid"
             ]
         ];
     }
