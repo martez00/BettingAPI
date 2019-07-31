@@ -6,7 +6,6 @@ use App\BalanceTransaction;
 use App\Bet;
 use App\BetSelections;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StatisticsByMonthRequest;
 use App\Http\Requests\BetsRequest;
 use App\Http\Requests\StoreBetRequest;
 use App\User;
