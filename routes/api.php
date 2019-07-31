@@ -18,6 +18,15 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::prefix('V1')->group(function () {
+    Route::post('auth/login', 'Api\V1\Auth\AuthApiController@login');
+    Route::group(['middleware' => 'jwt.auth'], function(){
+        Route::get('auth/user', 'Api\V1\Auth\AuthApiController@user');
+        Route::post('auth/logout', 'Api\V1\Auth\AuthApiController@logout');
+    });
+    Route::group(['middleware' => 'jwt.refresh'], function(){
+        Route::get('auth/refresh', 'Api\V1\Auth\AuthApiController@refresh');
+    });
+
     Route::group(['middleware' => ['sessions']], function () {
         Route::post('bet', 'Api\V1\Bet\BetApiController@store');
     });
