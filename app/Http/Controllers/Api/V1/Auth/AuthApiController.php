@@ -30,7 +30,7 @@ class AuthApiController extends Controller
             return response([
                 'status' => 'error',
                 'error' => 'invalid.credentials',
-                'msg' => 'Invalid Credentials.'
+                'message' => 'Invalid Credentials.'
             ], 400);
         }
         return response([
@@ -60,7 +60,7 @@ class AuthApiController extends Controller
         JWTAuth::invalidate();
         return response([
             'status' => 'success',
-            'msg' => 'Logged out Successfully.'
+            'message' => 'Logged out Successfully.'
         ], 200);
     }
 }
