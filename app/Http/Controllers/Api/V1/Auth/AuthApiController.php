@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1\Auth;
 
 use App\Http\Controllers\Controller;
+use App\User;
 use Illuminate\Http\Request;
 use JWTAuth;
 
@@ -10,7 +11,7 @@ class AuthApiController extends Controller
 {
     public function register(Request $request)
     {
-        $user = new \App\User;
+        $user = new User();
         $user->email = $request->email;
         $user->name = $request->name;
         $user->password = bcrypt($request->password);
@@ -41,7 +42,7 @@ class AuthApiController extends Controller
 
     public function user(Request $request)
     {
-        $user = \App\User::find(\Auth::user()->id);
+        $user = User::find(\Auth::user()->id);
         return response([
             'status' => 'success',
             'data' => $user

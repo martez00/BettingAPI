@@ -20,6 +20,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::prefix('V1')->group(function () {
     Route::prefix('auth')->group(function () {
         Route::post('login', 'Api\V1\Auth\AuthApiController@login');
+        Route::post('register', 'Api\V1\Auth\AuthApiController@register');
         Route::group(['middleware' => 'jwt.auth'], function(){
             Route::get('user', 'Api\V1\Auth\AuthApiController@user');
             Route::post('logout', 'Api\V1\Auth\AuthApiController@logout');
