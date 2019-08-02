@@ -42,7 +42,7 @@ class AuthApiController extends Controller
 
     public function user(Request $request)
     {
-        $user = User::find(\Auth::user()->id);
+        $user = User::find(auth()->user()->id);
         return response([
             'status' => 'success',
             'data' => $user

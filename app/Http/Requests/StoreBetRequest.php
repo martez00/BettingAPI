@@ -23,7 +23,6 @@ class StoreBetRequest extends FormRequest
     {
 
     }
-
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -31,7 +30,7 @@ class StoreBetRequest extends FormRequest
      */
     public function authorize()
     {
-        return true;
+        return auth()->check();
     }
 
     /**
