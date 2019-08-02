@@ -42,12 +42,12 @@ class User extends Authenticatable implements JWTSubject
 
     public function bets()
     {
-        return $this->hasMany('App\Bet');
+        return $this->hasMany('App\Bet', 'user_id');
     }
 
     public function balanceTransactions()
     {
-        return $this->hasMany('App\BalanceTransaction');
+        return $this->hasMany('App\BalanceTransaction', 'user_id');
     }
 
     public function getJWTIdentifier()

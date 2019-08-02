@@ -12,11 +12,11 @@ class Bet extends Model
 
     public function user()
     {
-        return $this->belongsTo('App\User');
+        return $this->belongsTo('App\User', 'user_id');
     }
 
     public function betSelections()
     {
-        return $this->hasMany('App\BetSelections');
+        return $this->hasMany('App\BetSelections', 'bet_id');
     }
 }

@@ -12,6 +12,6 @@ class Selection extends Model
 
     public function selectionBets()
     {
-        return $this->hasMany('App\BetSelections');
+        return $this->hasMany('App\BetSelections', 'selection_id');
     }
 }
