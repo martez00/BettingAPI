@@ -17,7 +17,9 @@ class SportApiController extends Controller
      */
     public function index()
     {
-        //
+        $query = Sport::select('*');
+        $sports = $query->get();
+        return response()->json(["data" => $sports], 200);
     }
 
     /**

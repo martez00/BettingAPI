@@ -20,11 +20,15 @@ Route::prefix('V1')->group(function () {
             Route::get('user', 'Api\V1\Auth\AuthApiController@user');
             Route::post('logout', 'Api\V1\Auth\AuthApiController@logout');
         });
+        Route::group(['middleware' => 'jwt.refresh'], function () {
+            Route::get('refresh', 'Api\V1\Auth\AuthApiController@refresh');
+        });
     });
 
     Route::prefix('admin')->group(function () {
         Route::group(['middleware' => ['jwt.auth', 'isAdmin']], function () {
             Route::post('sports', 'Api\V1\Sport\SportApiController@store');
+            Route::get('sports', 'Api\V1\Sport\SportApiController@index');
             Route::put('sports/{id}', 'Api\V1\Sport\SportApiController@update');
             Route::delete('sports/{id}', 'Api\V1\Sport\SportApiController@destroy');
         });
