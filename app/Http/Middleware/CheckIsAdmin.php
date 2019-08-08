@@ -16,11 +16,11 @@ class CheckIsAdmin
      */
     public function handle($request, Closure $next)
     {
-        if(Auth::user()->role === 2) {
+        if(Auth::user()->isAdmin()) {
             return $next($request);
         }
         else {
-            return response()->json(['error' => 'Unauthorized'], 403);
+            return response()->json(['errors' => [['code' => 0, 'message' => 'User is not admin']]], 403);
         }
     }
 }
